@@ -222,7 +222,7 @@ class Ui_Form(object):
         self.pushButton_3.setText(_translate("Form", "DFA"))
         self.pushButton_4.setText(_translate("Form", "REGEX"))
         self.pushButton.setShortcut(_translate("Form", "Return"))
-        self.label.setText(_translate("Form", "chars = (a-z | A-Z)\nnums = (0-9)\noper=(<|=|<=|>|>=| || |&&)\n[!* [chars+ nums*chars* | nums+]] (oper !*[chars+nums*chars*|chars])*\n"))
+        self.label.setText(_translate("Form", "chars = [a-z A-Z]\nnums = [0-9]\noper=(<|=|<=|>|>=| || |&&)\n(!* (chars+ (nums|chars)* | nums+)) (oper !*(chars+(nums|chars)*|nums+))*\n"))
     def ShowRegex(self):
         self.label.show()
     def GenerateDFA(self):
