@@ -7,13 +7,16 @@ from pandas import*
 from graphviz import Digraph
 from jupyterlab import*
 from colormath import *
-
+from parsingtable import Ui_ParsingTable
+import networkx as nx
+import tkinter as tk
+from Parser import *
 
 states = []
 tokens = []
 tokensTable=[]
 tokentype = []
-
+count=0
 token = {
     '=': 'Equal operator',
     '<': 'Less than operator',
@@ -140,7 +143,28 @@ def scan():
 
 
 ##  GUI CODE
+
 class Ui_Form(object):
+    def AST(self):
+        generate(tokensTable)
+    def openParse(self):
+        t=parse([x.lower() for x in tokens ])
+        if t=="Error":
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("This string is not valid for our grammar")
+            msg.setWindowTitle("Error")
+            msg.exec_()
+            self.pushButton_7.setEnabled(False)
+        else:
+            self.pushButton_7.setEnabled(True)
+
+    def openParsingTable(self):
+        self.window=QtWidgets.QWidget()
+        self.ui=Ui_ParsingTable()
+        self.ui.setupUi(self.window)
+        self.window.show()
+
     def setupUi(self, Form):
         Form.setObjectName("Form")
         # Form.setMaximumSize(1080, 720)
@@ -159,6 +183,9 @@ class Ui_Form(object):
         self.pushButton = QtWidgets.QPushButton(Form)
         self.pushButton_3 = QtWidgets.QPushButton(Form)
         self.pushButton_4 = QtWidgets.QPushButton(Form)
+        self.pushButton_5 = QtWidgets.QPushButton(Form)
+        self.pushButton_6 = QtWidgets.QPushButton(Form)
+        self.pushButton_7 = QtWidgets.QPushButton(Form)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -175,10 +202,23 @@ class Ui_Form(object):
         self.pushButton_4.setMaximumSize(QtCore.QSize(16777215, 50))
         self.pushButton.setObjectName("pushButton_4")
         self.verticalLayout.addWidget(self.pushButton_4)
+        self.pushButton_5.setSizePolicy(sizePolicy)
+        self.pushButton_5.setMaximumSize(QtCore.QSize(16777215, 50))
+        self.pushButton.setObjectName("pushButton_5")
+        self.verticalLayout.addWidget(self.pushButton_5)
+        self.pushButton_6.setSizePolicy(sizePolicy)
+        self.pushButton_6.setMaximumSize(QtCore.QSize(16777215, 50))
+        self.pushButton.setObjectName("pushButton_6")
+        self.verticalLayout.addWidget(self.pushButton_6)
+        self.pushButton_7.setSizePolicy(sizePolicy)
+        self.pushButton_7.setMaximumSize(QtCore.QSize(16777215, 50))
+        self.pushButton.setObjectName("pushButton_7")
+        self.verticalLayout.addWidget(self.pushButton_7)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label = QtWidgets.QLabel(Form)
         self.label.hide()
+        self.pushButton_7.setEnabled(False)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -212,19 +252,34 @@ class Ui_Form(object):
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.pushButton_3.clicked.connect(lambda: self.GenerateDFA())
         self.pushButton_4.clicked.connect(lambda: self.ShowRegex())
+        self.pushButton_5.clicked.connect(lambda: self.openParsingTable())
+        self.pushButton_6.clicked.connect(lambda: self.openParse())
+        self.pushButton_7.clicked.connect(lambda : self.AST())
+        self.pushButton_6.setEnabled(False)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Tiny Scanner"))
+        Form.setWindowTitle(_translate("Form", "Tiny Scanner and Parser"))
         Form.setWindowIcon(QtGui.QIcon('icon.png'))
         self.textEdit.setPlaceholderText(_translate("Form", "Please write your Code here..."))
         self.pushButton.setText(_translate("Form", "Scan Code"))
         self.pushButton_3.setText(_translate("Form", "DFA"))
         self.pushButton_4.setText(_translate("Form", "REGEX"))
+        self.pushButton_5.setText(_translate("Form", "Parsing Table"))
+        self.pushButton_6.setText(_translate("Form", "Parse"))
+        self.pushButton_7.setText(_translate("Form", "Abstract Syntax Tree"))
         self.pushButton.setShortcut(_translate("Form", "Return"))
         self.label.setText(_translate("Form", "chars = [a-z A-Z]\nnums = [0-9]\noper=(<|=|<=|>|>=| || |&&)\n(!* (chars+ (nums|chars)* | nums+)) (oper !*(chars+(nums|chars)*|nums+))*\n"))
     def ShowRegex(self):
-        self.label.show()
+        global count
+
+        if count%2==0:
+            self.label.show()
+            count+=1
+        else:
+            self.label.hide()
+            count+=1
+
     def GenerateDFA(self):
 
         dfa = DFA(
@@ -253,11 +308,10 @@ class Ui_Form(object):
             b = dfa.read_input_stepwise(tokens)
         except:
             print("not valid")
-        count = 0
         try:
             for i in b:
                 states.append(str(i))
-                count += 1
+
         except:
             print("the last state is not valid")
 
@@ -274,6 +328,7 @@ class Ui_Form(object):
         states.clear()
 
     def scan(self):
+        self.pushButton_7.setEnabled(False)
         tokens.clear()
         tokensTable.clear()
         tokentype.clear()
@@ -287,13 +342,18 @@ class Ui_Form(object):
         self.populateTable()
         print(tokens)
         print(tokentype)
+        print(tokensTable)
         if t != "":
+            self.pushButton_6.setEnabled(False)
+            self.pushButton_7.setEnabled(False)
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Invalid Token!")
             msg.setInformativeText(t)
             msg.setWindowTitle("Error")
             msg.exec_()
+        else:
+            self.pushButton_6.setEnabled(True)
 
     def populateTable(self):
         self.tableWidget.setColumnCount(3)
